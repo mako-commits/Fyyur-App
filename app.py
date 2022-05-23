@@ -130,7 +130,7 @@ def venues():
   #     "num_upcoming_shows": 0,
   #   }]
   # }]
-  ####NOTE
+  ####NOTE-REWRITE
     data = []
     queried_venues = Venue.query.distinct(Venue.state, Venue.city,).all()
     for queried_venue in queried_venues:
@@ -146,7 +146,7 @@ def venues():
             new_venue={}
             new_venue['id'] = venue.id
             new_venue['name']= venue.name
-            num_upcoming_shows = len(venue.upcoming_shows)
+            new_venue['num_upcoming_shows'] = len(venue.shows)
             new_venue_location.append(new_venue)
             # formatted_venues.append({
             #     "id": venue.id,
@@ -354,6 +354,15 @@ def artists():
     "id": 6,
     "name": "The Wild Sax Band",
   }]
+ 
+  data= []
+  data = Artist.query.distinct(Artist.name).all()
+  # for artist in artists:
+  #   new_artist={}
+  #   new_artist['artist_id']= artist.id,
+  #   new_artist['artist_name']= artist.name,
+  
+  #   data.append(new_artist)
   return render_template('pages/artists.html', artists=data)
 
 @app.route('/artists/search', methods=['POST'])
@@ -538,39 +547,39 @@ def create_artist_submission():
   #    phone = request.form['phone']
   #    image_link = request.form['image_link']
   #    facebook_link = request.form['facebook_link']
-  #    website_link = request.form['website_link']
+  #    website = request.form['website_link']
   #    genres =','.join(request.form.getlist('genres')) 
   #    seeking_venue = bool(request.form['seeking_venue'])
   #    seeking_description = request.form['seeking_description']
 
-  #    new_artist = Artist(name=name,city=city,state=state,phone=phone,image_link=image_link,facebook_link=facebook_link,website_link=website_link,genres=genres, seeking_venue=seeking_venue, seeking_description=seeking_description)
+  #    new_artist = Artist(name=name,city=city,state=state,phone=phone,image_link=image_link,facebook_link=facebook_link,website_link=website,genres=genres, seeking_venue=seeking_venue, seeking_description=seeking_description)
     
   #    db.session.add(new_artist)
   #    db.session.commit()
-  #################################################
-  error = False
-  try:
+  ################################################
+    error = False
+    try:
       name = request.form['name']
       city = request.form['city']
       state = request.form['state']
       phone = request.form['phone']
       image_link = request.form['image_link']
       facebook_link = request.form['facebook_link']
-      website_link = request.form['website']
+      website = request.form['website_link']
       genres =','.join(request.form.getlist('genres')) 
-      seeking_venue = bool(request.form['seeking_talent'])
+      seeking_venue = bool(request.form['seeking_venue'])
       seeking_description = request.form['seeking_description']
 
 
-      new_artist = Artist(name=name,city=city,state=state,phone=phone,image_link=image_link,facebook_link=facebook_link,website=website_link,genres=genres, seeking_venue=seeking_venue, seeking_description=seeking_description)
+      new_artist = Artist(name=name,city=city,state=state,phone=phone,image_link=image_link,facebook_link=facebook_link,website_link=website,genres=genres, seeking_venue=seeking_venue, seeking_description=seeking_description)
     
       db.session.add(new_artist)
       db.session.commit()
-  except:
+    except:
       error = True
       db.session.rollback()
       print(sys.exc_info())
-  finally:
+    finally:
       db.session.close()
       if error:
            # TODO: on unsuccessful db insert, flash an error instead.
@@ -578,7 +587,7 @@ def create_artist_submission():
       else:    
            # on successful db insert, flash success
           flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  return render_template('pages/home.html')
+      return render_template('pages/home.html')
   
   
    
@@ -594,14 +603,14 @@ def shows():
   data= []
   shows = Show.query.all()
   for show in shows:
-    new_show={}
-    new_show['venue_id']= show.venue.id,
-    new_show['venue_name']= show.venue.name,
-    new_show['artist_id']= show.artist.id,
-    new_show['artist_name']= show.artist.name,
-    new_show['artist_image_link']= show.artist.image_link,
-    new_show['start_time']= show.start_time
-    data.append(new_show)
+    data.append({
+      "venue_id": show.venue.id,
+      "venue_name": show.venue.name,
+      "artist_id": show.artist.id,
+      "artist_name":show.artist.name,
+     "artist_image_link": show.artist.image_link,
+     "start_time": show.start_time
+    })
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
