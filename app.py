@@ -48,7 +48,7 @@ class Venue(db.Model):
     seeking_description = db.Column(db.String(500))
     upcoming_shows_count = db.Column(db.Integer, default=0)
     past_shows_count = db.Column(db.Integer, default=0)
-    shows= db.relationship('Show', backref='venue', lazy='select' ,cascade='save-update, merge, delete')
+    shows= db.relationship('Show', backref='venue', lazy=True ,cascade='save-update, merge, delete')
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -68,7 +68,7 @@ class Artist(db.Model):
     seeking_description = db.Column(db.String(500))
     upcoming_shows_count = db.Column(db.Integer, default=0)
     past_shows_count = db.Column(db.Integer, default=0)
-    shows= db.relationship('Show', backref='artist', lazy='select', cascade='save-update, merge, delete')
+    shows= db.relationship('Show', backref='artist', lazy=True, cascade='save-update, merge, delete')
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -269,7 +269,29 @@ def show_venue(venue_id):
   # }
 
   venue = Venue.query.get(venue_id)
-  
+  past_shows = []
+  past_shows_count = 0
+  upcoming_shows = []
+  upcoming_shows_count = 0
+  present_time =  dateutil.parser.parse(str(datetime.now()))
+
+  for show in venue.shows:
+    if dateutil.parser.parse(show.start_time) > present_time:
+      upcoming_shows.append({
+                    "artist_id": show.artist_id,
+                    "artist_name": show.artist.name,
+                    "artist_image_link": show.artist.image_link,
+                    "start_time": show.start_time
+                })
+      upcoming_shows_count += 1               
+    elif dateutil.parser.parse(show.start_time) < present_time:
+                past_shows.append({
+                    "artist_id": show.artist_id,
+                    "artist_name": show.artist.name,
+                    "artist_image_link": show.artist.image_link,
+                    "start_time": show.start_time
+                })
+                past_shows_count += 1
   data={
     "id": venue.id,
     "name": venue.name,
@@ -283,7 +305,10 @@ def show_venue(venue_id):
     "seeking_talent": venue.seeking_talent,
     "seeking_description": venue.seeking_description,
     "image_link": venue.image_link,
-    "past_show_count": venue.past_shows_count
+    "past_shows_count": past_shows_count,
+    "upcoming_shows_count": upcoming_shows_count,
+    "upcoming_shows": upcoming_shows,
+     "past_shows": past_shows
    
   }
  
@@ -393,6 +418,29 @@ def show_artist(artist_id):
   # shows the artist page with the given artist_id
   # TODO: replace with real artist data from the artist table, using artist_id
   artist = Artist.query.get(artist_id)
+  past_shows = []
+  past_shows_count = 0
+  upcoming_shows = []
+  upcoming_shows_count = 0
+  present_time =  dateutil.parser.parse(str(datetime.now()))
+
+  for show in artist.shows:
+    if  dateutil.parser.parse(show.start_time) > present_time:
+      upcoming_shows.append({
+         "artist_id": show.artist_id,
+          "artist_name": show.artist.name,
+          "artist_image_link": show.artist.image_link,
+          "start_time": show.start_time
+      })
+      upcoming_shows_count += 1
+    elif dateutil.parser.parse(show.start_time) < present_time:    
+                past_shows.append({
+                    "artist_id": show.artist_id,
+                    "artist_name": show.artist.name,
+                    "artist_image_link": show.artist.image_link,
+                    "start_time": show.start_time
+                })
+                past_shows_count += 1
   artist_data={
     'id': artist.id,
     "name": artist.name,
@@ -405,6 +453,11 @@ def show_artist(artist_id):
     "seeking_venue": artist.seeking_venue,
     "seeking_description": artist.seeking_description,
     "image_link": artist.image_link,
+    "past_shows":past_shows,
+    "past_shows_count":past_shows_count,
+    "upcoming_shows":upcoming_shows,
+    "upcoming_shows_count":upcoming_shows_count
+
    
   }
   # data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
@@ -415,34 +468,34 @@ def show_artist(artist_id):
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = ArtistForm()
-  artist_info=Artist.query.get(artist_id)
-  artist={
-    "id": artist_info.id,
-    "name": artist_info.name,
-    "genres": artist_info.genres.split(','),
-    "city": artist_info.city,
-    "state": artist_info.state,
-    "phone": artist_info.phone,
-    "website_link": artist_info.website_link,
-    "facebook_link": artist_info.facebook_link,
-    "image_link": artist_info.image_link,
-    "seeking_venue": artist_info.seeking_venue,
-    "seeking_description": artist_info.seeking_description
-  }
-
-
-
+  artist=Artist.query.get(artist_id)
   # artist={
-  #   artist.name = request.form['name']
-  #   artist.genres = request.form['genres']
-  #   artist.city = request.form['city']
-  #   artist.phone = request.form['phone']
-  #   artist.website = request.form['website']
-  #   artist.facebook_link = request.form['facebook_link']
-  #   artist.seeking_venue = request.form['seeking_venue']
-  #   artist.seeking_description = request.form['seeking_description']
-  #   artist.image_link= request.form['image_link']
+  #   "id": artist_info.id,
+  #   "name": artist_info.name,
+  #   "genres": artist_info.genres.split(','),
+  #   "city": artist_info.city,
+  #   "state": artist_info.state,
+  #   "phone": artist_info.phone,
+  #   "website_link": artist_info.website_link,
+  #   "facebook_link": artist_info.facebook_link,
+  #   "image_link": artist_info.image_link,
+  #   "seeking_venue": artist_info.seeking_venue,
+  #   "seeking_description": artist_info.seeking_description
   # }
+
+
+
+  artist={
+   "name" : request.form['name'],
+   "genres" : request.form['genres'],
+   "city" : request.form['city'],
+   "phone" : request.form['phone'],
+   "website" : request.form['website'],
+   "facebook_link" : request.form['facebook_link'],
+    "seeking_venue" : request.form['seeking_venue'],
+    "seeking_description" : request.form['seeking_description'],
+    "image_link": request.form['image_link']
+  }
   # try:
     
   #   artist.name = request.form['name']
@@ -491,7 +544,7 @@ def edit_artist_submission(artist_id):
 #     artist.image_link= request.form['image_link']
 #     db.session.commit()
  error = False
- try:  
+ try: 
     artist.name = request.form['name']
     artist.genres = request.form['genres']
     artist.state = request.form['state']
@@ -638,6 +691,7 @@ def create_artist_submission():
       genres =','.join(request.form.getlist('genres')) 
       seeking_venue = bool(request.form['seeking_venue'])
       seeking_description = request.form['seeking_description']
+    
 
 
       new_artist = Artist(name=name,city=city,state=state,phone=phone,image_link=image_link,facebook_link=facebook_link,website_link=website,genres=genres, seeking_venue=seeking_venue, seeking_description=seeking_description)
