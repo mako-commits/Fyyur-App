@@ -110,7 +110,6 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
-  ####NOTE-REWRITE
     data = []
     queried_venues = Venue.query.distinct(Venue.state, Venue.city,).all()
     for queried_venue in queried_venues:
@@ -223,11 +222,11 @@ def create_venue_submission():
       facebook_link = request.form['facebook_link']
       website_link = request.form['website_link']
       genres =','.join(request.form.getlist('genres')) 
-      seeking_talent = True if request.form['seeking_talent'] == 'y' else False
+      seeking_talent = True if request.form.get('seeking_talent') == 'y' else False 
       seeking_description = request.form['seeking_description']
 
 
-      new_venue = Venue(name=name,city=city,state=state,address=address,phone=phone,image_link=image_link,facebook_link=facebook_link,website_link=website_link,genres=genres, seeking_talent=seeking_talent, seeking_description=seeking_description)
+      new_venue = Venue(name=name,city=city,state=state,address=address,phone=phone,image_link=image_link,facebook_link=facebook_link,website_link=website_link,genres=genres, seeking_talent=seeking_talent,seeking_description=seeking_description)
     
       db.session.add(new_venue)
       db.session.commit()
@@ -235,6 +234,7 @@ def create_venue_submission():
         error = True
         db.session.rollback()
         print(sys.exc_info())
+        print(error)
     finally:
         db.session.close()
         if error:
@@ -254,8 +254,10 @@ def delete_venue(venue_id):
     try:
       db.session.delete(venue)
       db.session.commit()
+      flash(f'Venue {venue.name} was deleted successfully')
     except:
       db.session.rollback()
+      flash(f'There was an error while delteing venue {venue.name}')
     finally:
       db.session.close()
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
@@ -374,7 +376,7 @@ def edit_artist_submission(artist_id):
     artist.phone = request.form['phone']
     artist.website_link = request.form['website_link']
     artist.facebook_link = request.form['facebook_link']
-    artist.seeking_venue = bool(request.form['seeking_venue'])
+    artist.seeking_venue =  True if request.form.get('seeking_venue') == 'y' else False 
     artist.seeking_description = request.form['seeking_description']
     artist.image_link= request.form['image_link']
     db.session.commit()
@@ -423,7 +425,7 @@ def edit_venue_submission(venue_id):
     venue.phone = request.form['phone']
     venue.website_link = request.form['website_link']
     venue.facebook_link = request.form['facebook_link']
-    venue.seeking_talent = bool(request.form['seeking_talent'])
+    venue.seeking_talent =  True if request.form.get('seeking_talent') == 'y' else False 
     venue.seeking_description = request.form['seeking_description']
     venue.image_link= request.form['image_link']
     db.session.commit()
@@ -461,7 +463,7 @@ def create_artist_submission():
       facebook_link = request.form['facebook_link']
       website = request.form['website_link']
       genres =','.join(request.form.getlist('genres')) 
-      seeking_venue = bool(request.form['seeking_venue'])
+      seeking_venue =  True if request.form.get('seeking_venue') == 'y' else False 
       seeking_description = request.form['seeking_description']
     
       new_artist = Artist(name=name,city=city,state=state,phone=phone,image_link=image_link,facebook_link=facebook_link,website_link=website,genres=genres, seeking_venue=seeking_venue, seeking_description=seeking_description)
