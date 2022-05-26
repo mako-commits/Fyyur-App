@@ -13,6 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
+from requests import session
 from sqlalchemy import ForeignKey
 from forms import *
 from flask_migrate import Migrate
@@ -24,6 +25,7 @@ from models import Venue,Artist,Show, db
 app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 db.app = app 
 
@@ -116,7 +118,9 @@ def search_venues():
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
   search_term = request.form['search_term']
-  search_query = Venue.query.filter(Venue.name.ilike(f'%{search_term}%'))
+  search_query = db.session.query(Venue,Artist).with_entities(Venue.name,Venue.id,Venue.upcoming_shows_count,Artist.name).filter(Venue.name.ilike(f'%{search_term}%') | Venue.city.ilike(f'%{search_term}%') | Venue.state.ilike(f'%{search_term}%')).all()
+  #search_query = db.session.query(Venue.name,Venue.city,Venue.state,Artist.city).join(search_term, Venue.city == Artist.City)
+  # search_query = Venue.query.filter(Venue.name.ilike(f'%{search_term}%') | Venue.city.ilike(f'%{search_term}%') | Venue.show.artist.name.ilike(f'%{search_term}%'))
   searched_results = list(search_query)
   search_term_count = len(searched_results)
   response={
