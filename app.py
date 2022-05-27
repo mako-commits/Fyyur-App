@@ -118,9 +118,8 @@ def search_venues():
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
   search_term = request.form['search_term']
-  search_query = db.session.query(Venue,Artist).with_entities(Venue.name,Venue.id,Venue.upcoming_shows_count,Artist.name).filter(Venue.name.ilike(f'%{search_term}%') | Venue.city.ilike(f'%{search_term}%') | Venue.state.ilike(f'%{search_term}%')).all()
-  #search_query = db.session.query(Venue.name,Venue.city,Venue.state,Artist.city).join(search_term, Venue.city == Artist.City)
-  # search_query = Venue.query.filter(Venue.name.ilike(f'%{search_term}%') | Venue.city.ilike(f'%{search_term}%') | Venue.show.artist.name.ilike(f'%{search_term}%'))
+  #search venue by name, state or city located
+  search_query = Venue.query.filter(Venue.name.ilike(f'%{search_term}%') | Venue.city.ilike(f'%{search_term}%') | Venue.state.ilike(f'%{search_term}%')) 
   searched_results = list(search_query)
   search_term_count = len(searched_results)
   response={
@@ -224,6 +223,7 @@ def show_venue(venue_id):
   present_time =  dateutil.parser.parse(str(datetime.now()))
 
   for show in venue.shows:
+    #finding out if the show is a pasted show or an incoming show
     if dateutil.parser.parse(show.start_time) > present_time:
       upcoming_shows_details={}
       upcoming_shows_details['artist_id'] = show.artist_id
@@ -298,7 +298,6 @@ def create_venue_submission():
         error = True
         db.session.rollback()
         print(sys.exc_info())
-        print(error)
     finally:
         db.session.close()
         if error:
@@ -361,7 +360,8 @@ def search_artists():
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
   search_term = request.form['search_term']
-  search_query = Artist.query.filter(Artist.name.ilike(f'%{search_term}%') | Artist.city.ilike(f'%{search_term}%') | Artist.city.ilike(f'%{search_term}%'))
+  #search artist by name or city
+  search_query = Artist.query.filter(Artist.name.ilike(f'%{search_term}%') | Artist.city.ilike(f'%{search_term}%') | Artist.state.ilike(f'%{search_term}%'))
   searched_results = list(search_query)
   search_term_count = len(searched_results)
   response={
@@ -459,6 +459,7 @@ def show_artist(artist_id):
   present_time =  dateutil.parser.parse(str(datetime.now()))
 
   for show in artist.shows:
+    #find out if a show is an incoming show or a pastes show
     if  dateutil.parser.parse(show.start_time) > present_time:
       upcoming_shows_details={}
       upcoming_shows_details['venue_id'] = show.venue_id
@@ -513,6 +514,7 @@ def edit_artist(artist_id):
   #   "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
   # }  
   artist_info=Artist.query.get(artist_id)  
+  #inserting data from database back into the form
   artist={
     "id": artist_info.id,
     "name": artist_info.name,
@@ -544,6 +546,7 @@ def edit_artist_submission(artist_id):
     artist.phone = request.form['phone']
     artist.website_link = request.form['website_link']
     artist.facebook_link = request.form['facebook_link']
+    # condition for checkbox
     artist.seeking_venue =  True if request.form.get('seeking_venue') == 'y' else False 
     artist.seeking_description = request.form['seeking_description']
     artist.image_link= request.form['image_link']
@@ -608,6 +611,7 @@ def edit_venue_submission(venue_id):
     venue.phone = request.form['phone']
     venue.website_link = request.form['website_link']
     venue.facebook_link = request.form['facebook_link']
+    #condition for checkbox
     venue.seeking_talent =  True if request.form.get('seeking_talent') == 'y' else False 
     venue.seeking_description = request.form['seeking_description']
     venue.image_link= request.form['image_link']
@@ -645,6 +649,7 @@ def create_artist_submission():
       image_link = request.form['image_link']
       facebook_link = request.form['facebook_link']
       website = request.form['website_link']
+      #separating the list of genres
       genres =','.join(request.form.getlist('genres')) 
       seeking_venue =  True if request.form.get('seeking_venue') == 'y' else False 
       seeking_description = request.form['seeking_description']

@@ -63,7 +63,7 @@ class Show(db.Model):
   artist_id = db.Column(db.Integer, ForeignKey(Artist.id),nullable=False)
   venue_id =  db.Column(db.Integer, ForeignKey(Venue.id),nullable=False)
   start_time = db.Column(db.String, nullable=True)
-
+ 
   def __repr__(self):
         return f'<Show {self.id} {self.artist_id} {self.venue_id} {self.start_time}>'
 
