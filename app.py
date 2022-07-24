@@ -19,6 +19,7 @@ from forms import *
 from flask_migrate import Migrate
 from models import (Venue, Artist, Show, db)
 from flask_wtf.csrf import CSRFProtect
+from jinja2.utils import markupsafe 
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -31,6 +32,8 @@ db.init_app(app)
 db.app = app
 csrf = CSRFProtect(app)
 
+markupsafe.Markup()
+Markup('')
 # ! drops the database tables and starts fresh can be used to initialize a clean database
 # db.drop_all()
 # db.create_all()
