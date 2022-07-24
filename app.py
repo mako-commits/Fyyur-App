@@ -13,6 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
+from markupsafe import Markup
 from requests import session
 from sqlalchemy import desc
 from forms import *
